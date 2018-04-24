@@ -861,6 +861,8 @@ void update_power_using_PID(byte leftSpeed, byte rightSpeed,float input, bool ne
       }else{
 
 
+          corrector_koef = abs(corrector_koef);
+
         rightSpeedCorrected = byte((float)rightSpeed - corrector_koef);
         leftSpeedCorrected = byte((float)leftSpeed + corrector_koef);
 
@@ -880,6 +882,7 @@ void update_power_using_PID(byte leftSpeed, byte rightSpeed,float input, bool ne
 
           sensors[0]->debugSetValue(rightSpeedCorrected);
           sensors[1]->debugSetValue(leftSpeedCorrected);
+         
 
       
   

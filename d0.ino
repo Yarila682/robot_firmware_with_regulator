@@ -837,7 +837,7 @@ float PID(float input){
 }
 
 
-void update_power_using_PID(byte leftSpeed, byte rightSpeed,float input, bool need_to_correct_right_speed ){
+void update_power_using_PID(byte leftSpeed, byte rightSpeed,float input, bool need_to_correct_right_speed, byte stepsPathDeltaLocal ){
 
  float corrector_koef = 0; 
 
@@ -882,6 +882,9 @@ void update_power_using_PID(byte leftSpeed, byte rightSpeed,float input, bool ne
 
           sensors[0]->debugSetValue(rightSpeedCorrected);
           sensors[1]->debugSetValue(leftSpeedCorrected);
+          sensors[2]->debugSetValue(leftSpeed);
+          sensors[3]->debugSetValue(rightSpeed);
+          sensors[4]->debugSetValue(stepsPathDeltaLocal);
          
 
       
@@ -957,7 +960,7 @@ void printSensors() {
 
 
   //analog
-  for (int i = 2; i < SENSOR_COUNT; i++) { //modified_by_yaroslav //for PID test purpose //i=0
+  for (int i = 5; i < SENSOR_COUNT; i++) { //modified_by_yaroslav //for PID test purpose //i=0
     byte byteType = sensors[i] -> getType();
     if (byteType != SENSOR_TYPE_ULTRASONIC && byteType != SENSOR_TYPE_COLOR) {
       sensors[i] -> reset();
@@ -1119,6 +1122,8 @@ void loop() {
     float steps_proportion;
     float e = 0; //невязка
 
+    unsigned int stepsPathDelta = 0;
+
   /*
    *  TODO
    * 
@@ -1126,9 +1131,24 @@ void loop() {
    * 
    */
 
-   
-  if ( ((leftMotor.stepsPath - rightMotor.stepsPath ) > 2 ) && (leftMotor.stepsPath > 0) && (rightMotor.stepsPath > 0) ){
+    if (leftMotor.stepsPath > rightMotor.stepsPath ){
 
+       stepsPathDelta = leftMotor.stepsPath - rightMotor.stepsPath;
+      
+    }else{
+
+
+           stepsPathDelta = rightMotor.stepsPath -  leftMotor.stepsPath;
+      
+    }
+
+
+  stepsPathDelta =  stepsPathDelta&0xFF;
+   
+  if ( ( stepsPathDelta > 2 ) && (leftMotor.stepsPath > 0) && (rightMotor.stepsPath > 0) && (globalLeftMotorSpeed > 0) && (globalRightMotorSpeed > 0) ){
+
+
+       
 
           
        // steps_proportion =  steps_proportion.div(Fixed::fromInt(leftMotor.stepsPath),Fixed::fromInt(rightMotor.stepsPath));
@@ -1150,12 +1170,12 @@ void loop() {
 
               if (e > 0){ //левый мотор перемещается быстрее, чем нужно
 
-                 update_power_using_PID(globalLeftMotorSpeed,globalRightMotorSpeed,e,true);
+                 update_power_using_PID(globalLeftMotorSpeed,globalRightMotorSpeed,e,true,(byte)stepsPathDelta);
                 
               }else{//правый мотор перемещается быстрее, чем нужно
 
 
-                  update_power_using_PID(globalLeftMotorSpeed,globalRightMotorSpeed,e,false);
+                  update_power_using_PID(globalLeftMotorSpeed,globalRightMotorSpeed,e,false,(byte)stepsPathDelta);
                 
               }
 

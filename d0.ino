@@ -811,7 +811,7 @@ void setup() {
 
 
 float Ks = 0.9;
-float Kd = 0.8;
+float Kd = 0.5; //0.8
 float Kr = 1.3;
 
 
